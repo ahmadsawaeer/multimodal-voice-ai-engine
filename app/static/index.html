@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoiceAI Engine — Real-Time Multimodal Voice Intelligence</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="dark-theme">
+
+  <div class="app-layout">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand-logo">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+        </div>
+        <div class="brand-text">
+          <h2>VoiceAI <span class="ai-badge">REALTIME</span></h2>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="section-title">ENGINE CONTROLS</span>
+          <a href="#" class="nav-item active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+            Live Voice Session
+          </a>
+          <a href="#" class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            Latency & VAD Metrics
+          </a>
+          <a href="#" class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Intent Classifier
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="avatar">AA</div>
+          <div class="user-info">
+            <div class="user-name">Ahmad Alswaeer</div>
+            <div class="user-role">Voice AI Engineer</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-workspace">
+      
+      <header class="workspace-header">
+        <div>
+          <h2>Real-Time Multimodal Voice Intelligence</h2>
+          <p class="header-desc">Sub-100ms Turn-Taking, Voice Activity Detection (VAD) & Emotion Classification</p>
+        </div>
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="connectionStatus">WebSocket Connected</span>
+        </div>
+      </header>
+
+      <!-- Live Visualizer Card -->
+      <section class="visualizer-card">
+        <div class="visualizer-header">
+          <span class="vis-title">AUDIO WAVEFORM VISUALIZER</span>
+          <div class="latency-badge">
+            LATENCY: <strong id="latencyValue">48 ms</strong>
+          </div>
+        </div>
+
+        <canvas id="waveformCanvas" width="800" height="120"></canvas>
+
+        <div class="voice-controls">
+          <button id="btnToggleMic" class="btn btn-mic">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+            <span>Start Voice Stream</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Sample Voice Presets -->
+      <section class="presets-section">
+        <span class="preset-label">TEST VOICE INTENTS:</span>
+        <button class="preset-btn" data-text="Book a luxury hotel in Dubai for tomorrow">🏨 Reserve Hotel Suite</button>
+        <button class="preset-btn" data-text="I want tickets for Burj Khalifa and desert safari">🌵 Tourism & Attractions</button>
+        <button class="preset-btn" data-text="I need urgent help with my flight status">✈️ Flight Status (Urgent)</button>
+        <button class="preset-btn" data-text="Cancel my booking immediately, service was terrible">😡 Frustrated Customer</button>
+      </section>
+
+      <!-- Real-Time Transcript Timeline -->
+      <section class="timeline-section">
+        <h3>Conversational Turn-Taking Log</h3>
+        <div id="transcriptLog" class="transcript-log">
+          <div class="empty-log">
+            <p>Voice stream idle. Click "Start Voice Stream" or select a preset above to begin conversational interaction.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
