@@ -2,27 +2,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnToggleMic = document.getElementById("btnToggleMic");
   const transcriptLog = document.getElementById("transcriptLog");
   const latencyValue = document.getElementById("latencyValue");
+  const connectionStatus = document.getElementById("connectionStatus");
   const canvas = document.getElementById("waveformCanvas");
   const ctx = canvas.getContext("2d");
 
   let ws = null;
-  let isStreaming = false;
+  let isListening = false;
+  let recognition = null;
   let animationId = null;
+  let audioAmp = 10;
 
-  // Initialize Animated Sine Wave Visualizer
+  // 1. Initialize HTML5 Canvas Animated Sine Wave Visualizer
   function drawWaveform() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.lineWidth = 2;
-    ctx.strokeStyle = isStreaming ? "#10B981" : "#6366F1";
+    ctx.strokeStyle = isListening ? "#10B981" : "#6366F1";
     ctx.beginPath();
 
-    const time = Date.now() * 0.005;
+    const time = Date.now() * 0.006;
     const sliceWidth = canvas.width / 100;
     let x = 0;
 
     for (let i = 0; i < 100; i++) {
-      const amp = isStreaming ? 35 : 12;
-      const y = (canvas.height / 2) + Math.sin(i * 0.1 + time) * amp * Math.cos(i * 0.05);
+      const currentAmp = isListening ? (audioAmp + Math.random() * 20) : 10;
+      const y = (canvas.height / 2) + Math.sin(i * 0.12 + time) * currentAmp * Math.cos(i * 0.06);
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
       x += sliceWidth;
@@ -34,7 +37,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   drawWaveform();
 
-  // Connect WebSocket
+  // 2. Initialize Web Speech API for Real Microphone Voice Input
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onresult = (event) => {
+      let finalTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript.trim()) {
+        sendVoiceText(finalTranscript.trim());
+      }
+    };
+
+    recognition.onerror = (err) => {
+      console.warn("Speech Recognition Error:", err.error);
+    };
+
+    recognition.onend = () => {
+      if (isListening) {
+        try { recognition.start(); } catch(e) {}
+      }
+    };
+  }
+
+  // 3. Connect WebSocket Full-Duplex Stream
   function connectWebSocket() {
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${wsProtocol}//${window.location.host}/ws/voice`;
@@ -42,23 +76,35 @@ document.addEventListener("DOMContentLoaded", () => {
     ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      document.getElementById("connectionStatus").textContent = "WebSocket Connected";
+      connectionStatus.textContent = "WebSocket Connected";
     };
 
     ws.onmessage = (event) => {
       const turnData = JSON.parse(event.data);
       renderTurnCard(turnData);
+      speakText(turnData.ai_response_text);
     };
 
     ws.onclose = () => {
-      document.getElementById("connectionStatus").textContent = "Disconnected (Retrying...)";
+      connectionStatus.textContent = "Disconnected (Retrying...)";
       setTimeout(connectWebSocket, 3000);
     };
   }
 
   connectWebSocket();
 
-  // Preset Buttons Click Handler
+  // 4. Text-to-Speech Engine (Audio Voice Output)
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop prior speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  // 5. Preset Test Buttons
   document.querySelectorAll(".preset-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const text = btn.getAttribute("data-text");
@@ -66,15 +112,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // 6. Mic Button Toggle
   btnToggleMic.addEventListener("click", () => {
-    isStreaming = !isStreaming;
-    if (isStreaming) {
+    isListening = !isListening;
+
+    if (isListening) {
       btnToggleMic.innerHTML = `<span>Stop Voice Stream</span>`;
       btnToggleMic.style.background = "#F43F5E";
-      sendVoiceText("Hello Voice Assistant, I want to inquire about Burj Khalifa tours");
+      audioAmp = 35;
+
+      if (recognition) {
+        try { recognition.start(); } catch(e) {}
+      } else {
+        alert("Web Speech API not supported in this browser. Use Chrome/Edge or click Preset Buttons above.");
+      }
     } else {
       btnToggleMic.innerHTML = `<span>Start Voice Stream</span>`;
       btnToggleMic.style.background = "";
+      audioAmp = 10;
+
+      if (recognition) {
+        try { recognition.stop(); } catch(e) {}
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     }
   });
 
@@ -82,14 +144,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ text: text }));
     } else {
-      // HTTP Fallback
       fetch("/api/v1/voice/process-audio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_transcript: text })
       })
       .then(res => res.json())
-      .then(data => renderTurnCard(data));
+      .then(data => {
+        renderTurnCard(data);
+        speakText(data.ai_response_text);
+      });
     }
   }
 
