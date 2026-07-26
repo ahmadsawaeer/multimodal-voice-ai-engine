@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 from app.audio_processor import AudioProcessor, VADResult
 from app.intent_classifier import MultimodalIntentClassifier, VoiceIntentAnalysis
 from app.barge_in import BargeInEngine, BargeInStatus
+from app.memory_store import SessionMemoryStore, MemoryTurn
+from app.multi_agent import MultiAgentOrchestrator, MultiAgentWorkflowResult
 
 
 class VoiceTurnEvent(BaseModel):
@@ -15,6 +17,7 @@ class VoiceTurnEvent(BaseModel):
     latency_ms: float
     state: str  # "LISTENING", "PROCESSING", "SPEAKING", "BARGE_IN"
     barge_in: BargeInStatus
+    workflow_result: Optional[MultiAgentWorkflowResult] = None
     timestamp: float
 
 
@@ -28,21 +31,15 @@ class LatencyBenchmark(BaseModel):
 
 
 class MultimodalVoiceEngine:
-    """Full-Duplex Real-Time Voice Intelligence Engine with Barge-In & SLA Benchmarks."""
+    """Full-Duplex Real-Time Voice Intelligence Engine with Multi-Agent Orchestration & Memory."""
 
     def __init__(self):
         self.audio_processor = AudioProcessor()
         self.intent_classifier = MultimodalIntentClassifier()
         self.barge_in_engine = BargeInEngine()
+        self.memory_store = SessionMemoryStore()
+        self.multi_agent = MultiAgentOrchestrator()
         self.latencies_history: List[float] = [42.1, 48.4, 51.0, 44.2, 46.8, 48.0]
-        
-        self.knowledge_base = {
-            "book": "I can help you reserve luxury hotel suites, desert safaris, or top dining spots in Dubai. What date works best for you?",
-            "tour": "Dubai features incredible sights like the Burj Khalifa, Museum of the Future, and Palm Jumeirah! Would you like tickets or a guided itinerary?",
-            "support": "I have flagged your request with priority support. A concierge specialist is available 24/7 to assist you.",
-            "flight": "Flight status update: Emirates EK202 is currently on schedule, arriving at Terminal 3.",
-            "default": "I heard you clearly! I am your real-time multimodal AI assistant. How can I assist your journey today?"
-        }
 
     async def process_audio_chunk(
         self,
@@ -71,13 +68,22 @@ class MultimodalVoiceEngine:
         # 4. Intent & Emotion Classification
         intent_res = self.intent_classifier.classify_transcript(user_transcript)
 
-        # 5. Generate AI Conversational Audio Response
-        t_lower = user_transcript.lower()
-        ai_response = self.knowledge_base["default"]
-        for key, text in self.knowledge_base.items():
-            if key in t_lower:
-                ai_response = text
-                break
+        # 5. Multi-Agent System Execution (RAG + AI Tools)
+        workflow_res = await self.multi_agent.execute_workflow(user_transcript)
+        ai_response = workflow_res.final_speech
+
+        # 6. Save Turn to Session Memory
+        self.memory_store.add_turn(
+            session_id=session_id,
+            turn=MemoryTurn(
+                user_text=user_transcript,
+                ai_text=ai_response,
+                detected_intent=intent_res.intent,
+                emotion=intent_res.emotion,
+                timestamp=time.time()
+            ),
+            entities=intent_res.detected_entities
+        )
 
         # Calculate total turn-taking latency in milliseconds
         latency_ms = round((time.time() - start_time) * 1000.0 + 45.0, 2)
@@ -93,6 +99,7 @@ class MultimodalVoiceEngine:
             latency_ms=latency_ms,
             state=state,
             barge_in=barge_in,
+            workflow_result=workflow_res,
             timestamp=time.time()
         )
 
