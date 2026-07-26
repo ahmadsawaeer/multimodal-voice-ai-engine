@@ -2,7 +2,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnToggleMic = document.getElementById("btnToggleMic");
   const transcriptLog = document.getElementById("transcriptLog");
   const latencyValue = document.getElementById("latencyValue");
+  const dbValue = document.getElementById("dbValue");
+  const emotionPill = document.getElementById("emotionPill");
+  const vadMeterFill = document.getElementById("vadMeterFill");
   const connectionStatus = document.getElementById("connectionStatus");
+  const voiceOrb = document.getElementById("voiceOrb");
+
   const canvas = document.getElementById("waveformCanvas");
   const ctx = canvas.getContext("2d");
 
@@ -14,9 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewLiveSession = document.getElementById("viewLiveSession");
   const viewMetrics = document.getElementById("viewMetrics");
   const viewClassifier = document.getElementById("viewClassifier");
-
-  const pageTitle = document.getElementById("pageTitle");
-  const pageSubtitle = document.getElementById("pageSubtitle");
 
   // Classifier Sandbox Elements
   const classifierInput = document.getElementById("classifierInput");
@@ -40,9 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Sidebar Routing Table
   const views = [
-    { nav: navLiveSession, view: viewLiveSession, title: "Real-Time Multimodal Voice Intelligence", subtitle: "Sub-100ms Turn-Taking, Voice Activity Detection (VAD) & Emotion Classification" },
-    { nav: navMetrics, view: viewMetrics, title: "Latency & VAD Performance Metrics", subtitle: "Real-time decibel energy analysis, frame durations, and turn-around distribution" },
-    { nav: navClassifier, view: viewClassifier, title: "Intent & Emotion Classifier Sandbox", subtitle: "Test custom text/voice utterances to inspect detected intents and agent routing actions" }
+    { nav: navLiveSession, view: viewLiveSession },
+    { nav: navMetrics, view: viewMetrics },
+    { nav: navClassifier, view: viewClassifier }
   ];
 
   views.forEach(item => {
@@ -54,8 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       item.nav.classList.add("active");
       item.view.classList.remove("hidden");
-      pageTitle.textContent = item.title;
-      pageSubtitle.textContent = item.subtitle;
 
       if (item.nav === navMetrics) renderMetricsCharts();
     });
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         labels: ["Active Speech", "Silence / Noise Floor"],
         datasets: [{
           data: [78, 22],
-          backgroundColor: ["#10B981", "#334155"],
+          backgroundColor: ["#10B981", "#182238"],
           borderWidth: 0
         }]
       },
@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 5. Preset Test Buttons
-  document.querySelectorAll(".preset-btn").forEach(btn => {
+  document.querySelectorAll(".preset-pill").forEach(btn => {
     btn.addEventListener("click", () => {
       const text = btn.getAttribute("data-text");
       sendVoiceText(text);
@@ -272,6 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
       btnToggleMic.innerHTML = `<span>Stop Voice Stream</span>`;
       btnToggleMic.style.background = "#F43F5E";
       audioAmp = 35;
+      vadMeterFill.style.width = "85%";
+      dbValue.textContent = "-18.2 dB";
 
       if (recognition) {
         try { recognition.start(); } catch(e) {}
@@ -279,9 +281,11 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Web Speech API not supported in this browser. Use Chrome/Edge or click Preset Buttons above.");
       }
     } else {
-      btnToggleMic.innerHTML = `<span>Start Voice Stream</span>`;
+      btnToggleMic.innerHTML = `<span>Tap to Speak</span>`;
       btnToggleMic.style.background = "";
       audioAmp = 10;
+      vadMeterFill.style.width = "25%";
+      dbValue.textContent = "-40.0 dB";
 
       if (recognition) {
         try { recognition.stop(); } catch(e) {}
@@ -310,24 +314,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderTurnCard(turn) {
-    const emptyLog = document.querySelector(".empty-log");
-    if (emptyLog) emptyLog.remove();
+    const notice = document.querySelector(".empty-stream-notice");
+    if (notice) notice.remove();
 
     latencyValue.textContent = `${turn.latency_ms} ms`;
+
+    const emotion = turn.intent_analysis.emotion || "CALM";
+    emotionPill.textContent = emotion;
+    emotionPill.className = `emotion-pill emotion-${emotion.toLowerCase()}`;
 
     const card = document.createElement("div");
     card.className = "turn-card";
 
-    const emotion = turn.intent_analysis.emotion || "CALM";
-    let emotionClass = "emotion-calm";
-    if (emotion === "URGENT") emotionClass = "emotion-urgent";
-    else if (emotion === "FRUSTRATED") emotionClass = "emotion-frustrated";
-    else if (emotion === "EXCITED") emotionClass = "emotion-excited";
-
     card.innerHTML = `
       <div class="turn-header">
-        <span class="emotion-badge ${emotionClass}">EMOTION: ${emotion}</span>
-        <span style="font-size: 0.72rem; color: #94A3B8;">INTENT: ${turn.intent_analysis.intent} (${turn.latency_ms}ms)</span>
+        <span class="emotion-pill emotion-${emotion.toLowerCase()}">EMOTION: ${emotion}</span>
+        <span style="font-size: 0.7rem; color: #94A3B8; font-family: monospace;">${turn.latency_ms}ms</span>
       </div>
       <div class="user-bubble"><strong>👤 User:</strong> ${turn.user_transcript}</div>
       <div class="ai-bubble"><strong>🤖 Voice AI:</strong> ${turn.ai_response_text}</div>

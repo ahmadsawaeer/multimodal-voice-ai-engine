@@ -3,195 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VoiceAI Engine — Real-Time Multimodal Voice Intelligence</title>
-  <link rel="stylesheet" href="/static/styles.css?v=2.0.1">
+  <title>VoiceAI Studio — Multimodal Voice Intelligence</title>
+  <link rel="stylesheet" href="/static/styles.css?v=3.0.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    /* Direct Cache-Busting Styles */
-    body { background-color: #090D16 !important; color: #F8FAFC !important; }
-    .metrics-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 1.25rem !important; margin-bottom: 1.5rem !important; }
-    .metric-card { background: #141B2D !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 12px !important; padding: 1.25rem !important; }
-    .metric-header { display: flex !important; justify-content: space-between !important; margin-bottom: 0.5rem !important; }
-    .metric-label { font-size: 0.68rem !important; font-weight: 700 !important; color: #94A3B8 !important; }
-    .metric-value { font-size: 1.5rem !important; font-weight: 800 !important; font-family: monospace !important; color: #FFF !important; }
-    .charts-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1.25rem !important; margin-bottom: 1.5rem !important; }
-    .chart-card { background: #141B2D !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 12px !important; padding: 1.25rem !important; }
-    .classifier-card { background: #141B2D !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 16px !important; padding: 1.75rem !important; }
-    .classifier-input-box { display: flex !important; gap: 0.75rem !important; margin-bottom: 1.5rem !important; }
-    .classifier-input-box input { flex: 1 !important; background: #1E273C !important; border: 1px solid rgba(255,255,255,0.12) !important; padding: 0.75rem 1rem !important; border-radius: 8px !important; color: #FFF !important; outline: none !important; }
-    .classifier-result-card { background: #1E273C !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 12px !important; padding: 1.25rem !important; display: flex !important; flex-direction: column !important; gap: 0.85rem !important; }
-    .btn-primary { background: #6366F1 !important; color: #FFF !important; border: none !important; padding: 0.75rem 1.25rem !important; border-radius: 8px !important; font-weight: 600 !important; cursor: pointer !important; }
-  </style>
 </head>
-<body class="dark-theme">
+<body class="studio-body">
 
-  <div class="app-layout">
-    
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand-logo">
-        <div class="logo-mark">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-        </div>
-        <div class="brand-text">
-          <h2>VoiceAI <span class="ai-badge">REALTIME</span></h2>
-        </div>
+  <!-- Floating Glass Navbar -->
+  <header class="glass-navbar">
+    <div class="nav-brand">
+      <div class="orb-icon"></div>
+      <span class="brand-name">VoiceAI <span class="badge-tag">STUDIO v3.0</span></span>
+    </div>
+
+    <nav class="nav-tabs">
+      <button id="navLiveSession" class="nav-tab active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        Voice Studio
+      </button>
+      <button id="navMetrics" class="nav-tab">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        VAD Telemetry
+      </button>
+      <button id="navClassifier" class="nav-tab">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Intent Sandbox
+      </button>
+    </nav>
+
+    <div class="nav-right">
+      <div class="connection-pill">
+        <span class="live-pulse"></span>
+        <span id="connectionStatus">WebSocket Ready</span>
       </div>
+    </div>
+  </header>
 
-      <nav class="sidebar-nav">
-        <div class="nav-section">
-          <span class="section-title">ENGINE CONTROLS</span>
-          <a href="#" id="navLiveSession" class="nav-item active">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-            Live Voice Session
-          </a>
-          <a href="#" id="navMetrics" class="nav-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-            Latency & VAD Metrics
-          </a>
-          <a href="#" id="navClassifier" class="nav-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            Intent Classifier
-          </a>
-        </div>
-      </nav>
+  <!-- Main Studio Layout Grid -->
+  <main class="studio-container">
 
-      <div class="sidebar-footer">
-        <div class="user-profile">
-          <div class="avatar">AA</div>
-          <div class="user-info">
-            <div class="user-name">Ahmad Alswaeer</div>
-            <div class="user-role">Voice AI Engineer</div>
+    <!-- VIEW 1: Voice Studio Workspace -->
+    <div id="viewLiveSession" class="studio-view">
+      <div class="three-column-grid">
+        
+        <!-- Left Column: Audio & Emotion Telemetry -->
+        <aside class="panel-card telemetry-panel">
+          <div class="panel-header">
+            <h3>AUDIO & EMOTION TELEMETRY</h3>
           </div>
-        </div>
-      </div>
-    </aside>
 
-    <!-- Main Workspace -->
-    <main class="main-workspace">
-      
-      <header class="workspace-header">
-        <div>
-          <h2 id="pageTitle">Real-Time Multimodal Voice Intelligence</h2>
-          <p id="pageSubtitle" class="header-desc">Sub-100ms Turn-Taking, Voice Activity Detection (VAD) & Emotion Classification</p>
-        </div>
-        <div class="status-indicator">
-          <span class="pulse-dot"></span>
-          <span id="connectionStatus">WebSocket Connected</span>
-        </div>
-      </header>
+          <div class="telemetry-box">
+            <div class="tele-item">
+              <span class="tele-label">VOICE ACTIVITY (VAD)</span>
+              <div class="meter-bar-track">
+                <div id="vadMeterFill" class="meter-bar-fill" style="width: 25%;"></div>
+              </div>
+            </div>
 
-      <!-- VIEW 1: Live Voice Session (Default) -->
-      <div id="viewLiveSession" class="workspace-view">
-        <!-- Live Visualizer Card -->
-        <section class="visualizer-card">
-          <div class="visualizer-header">
-            <span class="vis-title">AUDIO WAVEFORM VISUALIZER</span>
-            <div class="latency-badge">
-              LATENCY: <strong id="latencyValue">48 ms</strong>
+            <div class="tele-item">
+              <span class="tele-label">NOISE FLOOR (dB)</span>
+              <strong id="dbValue" class="tele-val">-40.0 dB</strong>
+            </div>
+
+            <div class="tele-item">
+              <span class="tele-label">TURN LATENCY</span>
+              <strong id="latencyValue" class="tele-val text-emerald">48 ms</strong>
+            </div>
+
+            <div class="tele-item">
+              <span class="tele-label">CURRENT EMOTION</span>
+              <span id="emotionPill" class="emotion-pill emotion-calm">CALM</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center Column: Glowing Voice Orb & Audio Studio -->
+        <section class="panel-card studio-center-panel">
+          <div class="orb-container">
+            <div id="voiceOrb" class="glowing-voice-orb">
+              <div class="orb-core"></div>
+              <div class="orb-ring ring-1"></div>
+              <div class="orb-ring ring-2"></div>
             </div>
           </div>
 
-          <canvas id="waveformCanvas" width="800" height="120"></canvas>
+          <div class="waveform-box">
+            <canvas id="waveformCanvas" width="500" height="80"></canvas>
+          </div>
 
-          <div class="voice-controls">
-            <button id="btnToggleMic" class="btn btn-mic">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
-              <span>Start Voice Stream</span>
+          <div class="controls-wrapper">
+            <button id="btnToggleMic" class="btn-glow-mic">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+              <span>Tap to Speak</span>
             </button>
           </div>
-        </section>
 
-        <!-- Sample Voice Presets -->
-        <section class="presets-section">
-          <span class="preset-label">TEST VOICE INTENTS:</span>
-          <button class="preset-btn" data-text="Book a luxury hotel in Dubai for tomorrow">🏨 Reserve Hotel Suite</button>
-          <button class="preset-btn" data-text="I want tickets for Burj Khalifa and desert safari">🌵 Tourism & Attractions</button>
-          <button class="preset-btn" data-text="I need urgent help with my flight status">✈️ Flight Status (Urgent)</button>
-          <button class="preset-btn" data-text="Cancel my booking immediately, service was terrible">😡 Frustrated Customer</button>
-        </section>
-
-        <!-- Real-Time Transcript Timeline -->
-        <section class="timeline-section">
-          <h3>Conversational Turn-Taking Log</h3>
-          <div id="transcriptLog" class="transcript-log">
-            <div class="empty-log">
-              <p>Voice stream idle. Click "Start Voice Stream" or select a preset above to begin conversational interaction.</p>
-            </div>
+          <!-- Quick Intent Presets -->
+          <div class="presets-row">
+            <button class="preset-pill" data-text="Book a luxury hotel suite in Dubai for tomorrow">🏨 Reserve Suite</button>
+            <button class="preset-btn preset-pill" data-text="I want tickets for Burj Khalifa and desert safari">🌵 Dubai Safari</button>
+            <button class="preset-btn preset-pill" data-text="I need urgent help with my flight status">✈️ Flight Query</button>
+            <button class="preset-btn preset-pill" data-text="Cancel my booking immediately, service was terrible">😡 Support Case</button>
           </div>
         </section>
+
+        <!-- Right Column: Real-Time Stream Transcript Log -->
+        <aside class="panel-card transcript-panel">
+          <div class="panel-header">
+            <h3>REAL-TIME STREAM TRANSCRIPT</h3>
+          </div>
+
+          <div id="transcriptLog" class="transcript-stream">
+            <div class="empty-stream-notice">
+              <div class="empty-icon">🎙️</div>
+              <p>Voice engine idle. Tap microphone above or select a preset to start voice streaming.</p>
+            </div>
+          </div>
+        </aside>
+
       </div>
+    </div>
 
-      <!-- VIEW 2: Latency & VAD Metrics -->
-      <div id="viewMetrics" class="workspace-view hidden">
-        <section class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">AVERAGE TURN LATENCY</span>
-              <span class="metric-badge badge-emerald">SUB-100MS TARGET</span>
-            </div>
-            <div class="metric-value">48.2 ms</div>
+    <!-- VIEW 2: Latency & VAD Telemetry View -->
+    <div id="viewMetrics" class="studio-view hidden">
+      <div class="metrics-metrics-wrapper">
+        <section class="top-metrics-banner">
+          <div class="metric-glass-card">
+            <span class="m-label">AVERAGE TURN LATENCY</span>
+            <div class="m-val text-emerald">48.2 ms</div>
+            <span class="m-sub">Target: &lt;100ms</span>
           </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">VAD SILENCE THRESHOLD</span>
-              <span class="metric-badge badge-blue">NOISE FLOOR</span>
-            </div>
-            <div class="metric-value">-40.0 dB</div>
+          <div class="metric-glass-card">
+            <span class="m-label">NOISE FLOOR THRESHOLD</span>
+            <div class="m-val text-indigo">-40.0 dB</div>
+            <span class="m-sub">PCM 16kHz</span>
           </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">AUDIO FRAME RATE</span>
-              <span class="metric-badge badge-amber">16 KHZ PCM</span>
-            </div>
-            <div class="metric-value">30 ms / Frame</div>
+          <div class="metric-glass-card">
+            <span class="m-label">FRAME PROCESSING RATE</span>
+            <div class="m-val text-amber">30 ms / frame</div>
+            <span class="m-sub">Full Duplex</span>
           </div>
         </section>
 
-        <section class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-title">Turn-Taking Latency Distribution (ms)</div>
-            <div class="chart-container">
+        <section class="charts-two-col">
+          <div class="chart-glass-card">
+            <h4>Turn-Taking Latency Distribution (ms)</h4>
+            <div class="chart-box">
               <canvas id="latencyChart"></canvas>
             </div>
           </div>
-
-          <div class="chart-card">
-            <div class="chart-title">Speech vs Silence VAD Ratio</div>
-            <div class="chart-container">
+          <div class="chart-glass-card">
+            <h4>Speech vs Silence VAD Ratio</h4>
+            <div class="chart-box">
               <canvas id="vadRatioChart"></canvas>
             </div>
           </div>
         </section>
       </div>
+    </div>
 
-      <!-- VIEW 3: Intent Classifier Sandbox -->
-      <div id="viewClassifier" class="workspace-view hidden">
-        <section class="classifier-card">
+    <!-- VIEW 3: Intent Classifier Sandbox View -->
+    <div id="viewClassifier" class="studio-view hidden">
+      <section class="classifier-glass-panel">
+        <div class="classifier-header">
           <h3>Interactive Multimodal Intent & Emotion Classifier</h3>
-          <p class="classifier-desc">Test custom text/voice utterances to inspect detected intents, emotion states, confidence metrics, and agent routing actions.</p>
-          
-          <div class="classifier-input-box">
-            <input type="text" id="classifierInput" placeholder="Type utterance e.g. 'I need an urgent refund for my hotel booking'...">
-            <button id="btnTestClassifier" class="btn btn-primary">Classify Utterance</button>
+          <p>Inspect detected intents, emotion states, confidence metrics, and agent routing actions.</p>
+        </div>
+
+        <div class="classifier-input-group">
+          <input type="text" id="classifierInput" placeholder="Type utterance e.g. 'I need an urgent refund for my hotel booking'...">
+          <button id="btnTestClassifier" class="btn btn-primary">Classify Utterance</button>
+        </div>
+
+        <div id="classifierResultBox" class="classifier-output-card hidden">
+          <div class="res-grid">
+            <div class="res-item"><span class="lbl">Detected Intent</span><strong id="resIntent" class="val text-indigo">-</strong></div>
+            <div class="res-item"><span class="lbl">Emotion State</span><strong id="resEmotion" class="val text-amber">-</strong></div>
+            <div class="res-item"><span class="lbl">Confidence Score</span><strong id="resConfidence" class="val text-emerald">-</strong></div>
+            <div class="res-item"><span class="lbl">Extracted Entities</span><strong id="resEntities" class="val">-</strong></div>
+            <div class="res-item col-span-2"><span class="lbl">Recommended Action</span><strong id="resAction" class="val text-purple">-</strong></div>
           </div>
+        </div>
+      </section>
+    </div>
 
-          <div id="classifierResultBox" class="classifier-result-card hidden">
-            <div class="result-row"><span class="res-label">Detected Intent:</span> <strong id="resIntent" class="res-val">-</strong></div>
-            <div class="result-row"><span class="res-label">Emotion State:</span> <strong id="resEmotion" class="res-val">-</strong></div>
-            <div class="result-row"><span class="res-label">Confidence Score:</span> <strong id="resConfidence" class="res-val">-</strong></div>
-            <div class="result-row"><span class="res-label">Extracted Entities:</span> <strong id="resEntities" class="res-val">-</strong></div>
-            <div class="result-row"><span class="res-label">Recommended Action:</span> <strong id="resAction" class="res-val">-</strong></div>
-          </div>
-        </section>
-      </div>
+  </main>
 
-    </main>
-
-  </div>
-
-  <script src="/static/app.js?v=2.0.1"></script>
+  <script src="/static/app.js?v=3.0.0"></script>
 </body>
 </html>
