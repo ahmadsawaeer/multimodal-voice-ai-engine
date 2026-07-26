@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Render Chart.js Performance Analytics
+  // Render Chart.js Performance Analytics (Light Mode)
   function renderMetricsCharts() {
     if (latencyChartInstance) latencyChartInstance.destroy();
     const ctx1 = document.getElementById("latencyChart").getContext("2d");
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         datasets: [{
           label: "Latency (ms)",
           data: [42, 48, 51, 44, 46, 48],
-          backgroundColor: "#6366F1",
+          backgroundColor: "#0071E3",
           borderRadius: 6
         }]
       },
@@ -103,8 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          y: { ticks: { color: "#94A3B8" }, grid: { color: "rgba(255,255,255,0.08)" } },
-          x: { ticks: { color: "#94A3B8" }, grid: { display: false } }
+          y: { ticks: { color: "#86868B" }, grid: { color: "rgba(0,0,0,0.06)" } },
+          x: { ticks: { color: "#86868B" }, grid: { display: false } }
         }
       }
     });
@@ -117,14 +117,14 @@ document.addEventListener("DOMContentLoaded", () => {
         labels: ["Active Speech", "Silence / Noise Floor"],
         datasets: [{
           data: [78, 22],
-          backgroundColor: ["#10B981", "#182238"],
+          backgroundColor: ["#34C759", "#E2E8F0"],
           borderWidth: 0
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom", labels: { color: "#94A3B8" } } }
+        plugins: { legend: { position: "bottom", labels: { color: "#86868B" } } }
       }
     });
   }
@@ -141,11 +141,11 @@ document.addEventListener("DOMContentLoaded", () => {
     window.speechSynthesis.onvoiceschanged = loadNaturalVoices;
   }
 
-  // 1. Initialize HTML5 Canvas Animated Sine Wave Visualizer
+  // 1. Initialize HTML5 Canvas Animated Sine Wave Visualizer (Light Mode)
   function drawWaveform() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = isListening ? "#10B981" : "#6366F1";
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = isListening ? "#34C759" : "#0071E3";
     ctx.beginPath();
 
     const time = Date.now() * 0.006;
@@ -270,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isListening) {
       btnToggleMic.innerHTML = `<span>Stop Voice Stream</span>`;
-      btnToggleMic.style.background = "#F43F5E";
+      btnToggleMic.style.background = "#FF3B30";
       audioAmp = 35;
       vadMeterFill.style.width = "85%";
       dbValue.textContent = "-18.2 dB";
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.innerHTML = `
       <div class="turn-header">
         <span class="emotion-pill emotion-${emotion.toLowerCase()}">EMOTION: ${emotion}</span>
-        <span style="font-size: 0.7rem; color: #94A3B8; font-family: monospace;">${turn.latency_ms}ms</span>
+        <span style="font-size: 0.7rem; color: #86868B; font-family: monospace;">${turn.latency_ms}ms</span>
       </div>
       <div class="user-bubble"><strong>👤 User:</strong> ${turn.user_transcript}</div>
       <div class="ai-bubble"><strong>🤖 Voice AI:</strong> ${turn.ai_response_text}</div>
