@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
 
@@ -7,6 +7,7 @@ class RAGQueryResult(BaseModel):
     matched_doc: str
     citation: str
     relevance_score: float
+    is_conversational_fallback: bool = False
 
 
 class VoiceRAGEngine:
@@ -20,23 +21,45 @@ class VoiceRAGEngine:
         ]
 
     def query(self, text: str) -> RAGQueryResult:
-        t = text.lower()
-        matched = self.documents[0]
-        score = 0.82
+        t = text.lower().strip()
 
-        if "burj" in t or "khalifa" in t or "attraction" in t:
-            matched = self.documents[0]
-            score = 0.95
-        elif "flight" in t or "emirates" in t or "baggage" in t:
-            matched = self.documents[1]
-            score = 0.93
-        elif "hotel" in t or "atlantis" in t or "check-in" in t:
-            matched = self.documents[2]
-            score = 0.91
+        # Conversational greetings & hearing checks
+        if any(w in t for w in ["hear me", "can you hear", "hello", "hi", "hey", "testing", "who are you"]):
+            return RAGQueryResult(
+                query=text,
+                matched_doc="Yes, I can hear you clearly! I am your real-time multimodal voice AI assistant. How can I assist you today?",
+                citation="System Conversational Agent",
+                relevance_score=0.99,
+                is_conversational_fallback=True
+            )
 
+        if any(w in t for w in ["burj", "khalifa", "attraction", "ticket", "safari"]):
+            return RAGQueryResult(
+                query=text,
+                matched_doc=self.documents[0]["content"],
+                citation=self.documents[0]["citation"],
+                relevance_score=0.95
+            )
+        elif any(w in t for w in ["flight", "emirates", "baggage", "plane"]):
+            return RAGQueryResult(
+                query=text,
+                matched_doc=self.documents[1]["content"],
+                citation=self.documents[1]["citation"],
+                relevance_score=0.93
+            )
+        elif any(w in t for w in ["hotel", "atlantis", "check-in", "suite", "room"]):
+            return RAGQueryResult(
+                query=text,
+                matched_doc=self.documents[2]["content"],
+                citation=self.documents[2]["citation"],
+                relevance_score=0.91
+            )
+
+        # Default conversational fallback
         return RAGQueryResult(
             query=text,
-            matched_doc=matched["content"],
-            citation=matched["citation"],
-            relevance_score=score
+            matched_doc="I heard you clearly! How can I assist with your journey, hotel reservations, or flight queries today?",
+            citation="System Conversational Agent",
+            relevance_score=0.88,
+            is_conversational_fallback=True
         )

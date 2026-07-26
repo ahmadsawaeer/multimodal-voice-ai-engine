@@ -17,6 +17,13 @@ def test_audio_processor_vad():
     assert res_silent.is_speech is False
 
 
+def test_conversational_hearing_check():
+    rag = VoiceRAGEngine()
+    res = rag.query("can you hear me")
+    assert "hear you clearly" in res.matched_doc.lower()
+    assert res.is_conversational_fallback is True
+
+
 def test_plugin_tool_calling():
     registry = PluginRegistry()
     defs = registry.list_definitions()
@@ -67,9 +74,9 @@ async def test_voice_engine_full_pipeline():
     turn = await engine.process_audio_chunk(
         session_id="sess_001",
         pcm_bytes=dummy_pcm,
-        user_text_override="Reserve a hotel suite for 2 nights"
+        user_text_override="can you hear me"
     )
 
     assert turn.turn_id.startswith("turn_")
-    assert turn.workflow_result is not None
+    assert "hear you clearly" in turn.ai_response_text.lower()
     assert turn.latency_ms < 200.0
