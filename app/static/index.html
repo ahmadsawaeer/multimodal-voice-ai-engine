@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VoiceAI Engine — Real-Time Multimodal Voice Intelligence</title>
   <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="dark-theme">
 
@@ -24,15 +25,15 @@
       <nav class="sidebar-nav">
         <div class="nav-section">
           <span class="section-title">ENGINE CONTROLS</span>
-          <a href="#" class="nav-item active">
+          <a href="#" id="navLiveSession" class="nav-item active">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
             Live Voice Session
           </a>
-          <a href="#" class="nav-item">
+          <a href="#" id="navMetrics" class="nav-item">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
             Latency & VAD Metrics
           </a>
-          <a href="#" class="nav-item">
+          <a href="#" id="navClassifier" class="nav-item">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             Intent Classifier
           </a>
@@ -55,8 +56,8 @@
       
       <header class="workspace-header">
         <div>
-          <h2>Real-Time Multimodal Voice Intelligence</h2>
-          <p class="header-desc">Sub-100ms Turn-Taking, Voice Activity Detection (VAD) & Emotion Classification</p>
+          <h2 id="pageTitle">Real-Time Multimodal Voice Intelligence</h2>
+          <p id="pageSubtitle" class="header-desc">Sub-100ms Turn-Taking, Voice Activity Detection (VAD) & Emotion Classification</p>
         </div>
         <div class="status-indicator">
           <span class="pulse-dot"></span>
@@ -64,43 +65,112 @@
         </div>
       </header>
 
-      <!-- Live Visualizer Card -->
-      <section class="visualizer-card">
-        <div class="visualizer-header">
-          <span class="vis-title">AUDIO WAVEFORM VISUALIZER</span>
-          <div class="latency-badge">
-            LATENCY: <strong id="latencyValue">48 ms</strong>
+      <!-- VIEW 1: Live Voice Session (Default) -->
+      <div id="viewLiveSession" class="workspace-view">
+        <!-- Live Visualizer Card -->
+        <section class="visualizer-card">
+          <div class="visualizer-header">
+            <span class="vis-title">AUDIO WAVEFORM VISUALIZER</span>
+            <div class="latency-badge">
+              LATENCY: <strong id="latencyValue">48 ms</strong>
+            </div>
           </div>
-        </div>
 
-        <canvas id="waveformCanvas" width="800" height="120"></canvas>
+          <canvas id="waveformCanvas" width="800" height="120"></canvas>
 
-        <div class="voice-controls">
-          <button id="btnToggleMic" class="btn btn-mic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
-            <span>Start Voice Stream</span>
-          </button>
-        </div>
-      </section>
-
-      <!-- Sample Voice Presets -->
-      <section class="presets-section">
-        <span class="preset-label">TEST VOICE INTENTS:</span>
-        <button class="preset-btn" data-text="Book a luxury hotel in Dubai for tomorrow">🏨 Reserve Hotel Suite</button>
-        <button class="preset-btn" data-text="I want tickets for Burj Khalifa and desert safari">🌵 Tourism & Attractions</button>
-        <button class="preset-btn" data-text="I need urgent help with my flight status">✈️ Flight Status (Urgent)</button>
-        <button class="preset-btn" data-text="Cancel my booking immediately, service was terrible">😡 Frustrated Customer</button>
-      </section>
-
-      <!-- Real-Time Transcript Timeline -->
-      <section class="timeline-section">
-        <h3>Conversational Turn-Taking Log</h3>
-        <div id="transcriptLog" class="transcript-log">
-          <div class="empty-log">
-            <p>Voice stream idle. Click "Start Voice Stream" or select a preset above to begin conversational interaction.</p>
+          <div class="voice-controls">
+            <button id="btnToggleMic" class="btn btn-mic">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+              <span>Start Voice Stream</span>
+            </button>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <!-- Sample Voice Presets -->
+        <section class="presets-section">
+          <span class="preset-label">TEST VOICE INTENTS:</span>
+          <button class="preset-btn" data-text="Book a luxury hotel in Dubai for tomorrow">🏨 Reserve Hotel Suite</button>
+          <button class="preset-btn" data-text="I want tickets for Burj Khalifa and desert safari">🌵 Tourism & Attractions</button>
+          <button class="preset-btn" data-text="I need urgent help with my flight status">✈️ Flight Status (Urgent)</button>
+          <button class="preset-btn" data-text="Cancel my booking immediately, service was terrible">😡 Frustrated Customer</button>
+        </section>
+
+        <!-- Real-Time Transcript Timeline -->
+        <section class="timeline-section">
+          <h3>Conversational Turn-Taking Log</h3>
+          <div id="transcriptLog" class="transcript-log">
+            <div class="empty-log">
+              <p>Voice stream idle. Click "Start Voice Stream" or select a preset above to begin conversational interaction.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- VIEW 2: Latency & VAD Metrics -->
+      <div id="viewMetrics" class="workspace-view hidden">
+        <section class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">AVERAGE TURN LATENCY</span>
+              <span class="metric-badge badge-emerald">SUB-100MS TARGET</span>
+            </div>
+            <div class="metric-value">48.2 ms</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">VAD SILENCE THRESHOLD</span>
+              <span class="metric-badge badge-blue">NOISE FLOOR</span>
+            </div>
+            <div class="metric-value">-40.0 dB</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-label">AUDIO FRAME RATE</span>
+              <span class="metric-badge badge-amber">16 KHZ PCM</span>
+            </div>
+            <div class="metric-value">30 ms / Frame</div>
+          </div>
+        </section>
+
+        <section class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Turn-Taking Latency Distribution (ms)</div>
+            <div class="chart-container">
+              <canvas id="latencyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">Speech vs Silence VAD Ratio</div>
+            <div class="chart-container">
+              <canvas id="vadRatioChart"></canvas>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- VIEW 3: Intent Classifier Sandbox -->
+      <div id="viewClassifier" class="workspace-view hidden">
+        <section class="classifier-card">
+          <h3>Interactive Multimodal Intent & Emotion Classifier</h3>
+          <p class="classifier-desc">Test custom text/voice utterances to inspect detected intents, emotion states, confidence metrics, and agent routing actions.</p>
+          
+          <div class="classifier-input-box">
+            <input type="text" id="classifierInput" placeholder="Type utterance e.g. 'I need an urgent refund for my hotel booking'...">
+            <button id="btnTestClassifier" class="btn btn-primary">Classify Utterance</button>
+          </div>
+
+          <div id="classifierResultBox" class="classifier-result-card hidden">
+            <div class="result-row"><span class="res-label">Detected Intent:</span> <strong id="resIntent" class="res-val">-</strong></div>
+            <div class="result-row"><span class="res-label">Emotion State:</span> <strong id="resEmotion" class="res-val">-</strong></div>
+            <div class="result-row"><span class="res-label">Confidence Score:</span> <strong id="resConfidence" class="res-val">-</strong></div>
+            <div class="result-row"><span class="res-label">Extracted Entities:</span> <strong id="resEntities" class="res-val">-</strong></div>
+            <div class="result-row"><span class="res-label">Recommended Action:</span> <strong id="resAction" class="res-val">-</strong></div>
+          </div>
+        </section>
+      </div>
 
     </main>
 
