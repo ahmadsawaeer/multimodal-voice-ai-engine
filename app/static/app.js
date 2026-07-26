@@ -11,6 +11,19 @@ document.addEventListener("DOMContentLoaded", () => {
   let recognition = null;
   let animationId = null;
   let audioAmp = 10;
+  let availableVoices = [];
+
+  // Load High-Quality Natural / Neural Voices from Browser Synthesis
+  function loadNaturalVoices() {
+    if ('speechSynthesis' in window) {
+      availableVoices = window.speechSynthesis.getVoices();
+    }
+  }
+
+  loadNaturalVoices();
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadNaturalVoices;
+  }
 
   // 1. Initialize HTML5 Canvas Animated Sine Wave Visualizer
   function drawWaveform() {
@@ -93,15 +106,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   connectWebSocket();
 
-  // 4. Text-to-Speech Engine (Audio Voice Output)
+  // 4. Natural Human-like Neural Voice Output Engine
   function speakText(text) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Stop prior speech
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+    if (!('speechSynthesis' in window)) return;
+
+    window.speechSynthesis.cancel(); // Cancel active speech
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.02; // Natural conversational cadence
+    utterance.pitch = 1.05; // Friendly vocal tone
+    utterance.volume = 1.0;
+
+    // Filter for Neural / Natural / Premium English Voice
+    if (!availableVoices.length) {
+      availableVoices = window.speechSynthesis.getVoices();
     }
+
+    const naturalVoice = availableVoices.find(v => 
+      v.lang.startsWith("en") && (
+        v.name.includes("Natural") || 
+        v.name.includes("Neural") || 
+        v.name.includes("Google US English") || 
+        v.name.includes("Samantha") || 
+        v.name.includes("Jenny") || 
+        v.name.includes("Guy") || 
+        v.name.includes("Online")
+      )
+    ) || availableVoices.find(v => v.lang.startsWith("en"));
+
+    if (naturalVoice) {
+      utterance.voice = naturalVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
   }
 
   // 5. Preset Test Buttons
